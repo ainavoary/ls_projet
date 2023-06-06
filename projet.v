@@ -1,4 +1,5 @@
 Require Export Nat.
+Require Export Ltac.
 
 (*Question 1*)
 (*
@@ -50,24 +51,70 @@ Eval compute in eval_expr expr2. (*20*)
 
 (*4.1*)
 
-Inductive liste (T : Type) : Type := 
-  | lvide : liste T
-  | ajt : T -> liste T -> liste T.
-
 Inductive postfix_expr : Type := 
   |post_Cst : nat -> postfix_expr
   |post_Mult : postfix_expr
   |post_Plus : postfix_expr.
 
+
+Inductive liste : Type := 
+  | lvide : liste
+  | ajt : postfix_expr -> liste -> liste.
+
+
 (*4.2*)
 
-Definition postfix_expr_liste := liste postfix_expr.  
+(*?????????????????????*)
 
 (*4.3*)
 
-Example postfix_expr1 : postfix_expr_liste := ajt (post_Cst 1) (ajt (post_Cst 2) (ajt post_Plus (ajt (post_Cst 3) (ajt post_Mult lvide)))).
-Example postfix_expr2 : postfix_expr_liste := .
+(* 
+1 2 + 3 * 
+*)
+Example postfix_expr1 := ajt (post_Cst 1) 
+                                (ajt (post_Cst 2) 
+                                     (ajt post_Plus 
+                                          (ajt (post_Cst 3) 
+                                               (ajt post_Mult lvide)
+                                          )
+                                     )
+                                ).
 
+(* 
+1 2 3 + * 4 *
+*)
+Example postfix_expr2 := ajt (post_Cst 1) 
+                                (ajt (post_Cst 2)
+                                     (ajt (post_Cst 3) 
+                                          (ajt post_Plus 
+                                               (ajt post_Mult 
+                                                    (ajt (post_Cst 4)
+                                                         (ajt post_Mult lvide)
+                                                    )
+                                                )
+                                          )
+                                     )
+                                ).
 
+(*Question 5*)
 
+(*5.1*)
+
+Fixpoint append (l1 l2 : liste) : liste :=
+  match l1 with
+  |lvide => l2
+  |ajt elt l => ajt elt (append l l2)
+  end.
+
+Notation "l1 @ l2" := (append l1 l2) (right associativity, at level 60).
+
+Example associativity : lvide @ ( postfix_expr1 @ postfix_expr2) = (lvide @ postfix_expr1) @ postfix_expr2.
+Abort.
+Theorem associativity : forall l:liste,
+lvide @ ( postfix_expr1 @ postfix_expr2) = (lvide @ postfix_expr1) @ postfix_expr2.
+
+About intro.
+
+Proof
+  intro.
 
