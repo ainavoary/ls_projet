@@ -1,4 +1,4 @@
-Require Export Nat.
+
 
 (*Question 1*)
 (*
@@ -45,8 +45,8 @@ Fixpoint eval_expr (exp : expr) : nat :=
 
 (*Utilisation de eval_expr*)
 
-Eval compute in eval_expr expr1. (*7*)
-Eval compute in eval_expr expr2. (*20*)
+Compute eval_expr expr1. (*7*)
+Compute eval_expr expr2. (*20*)
 
 (*Question 4*)
 
@@ -56,13 +56,13 @@ Inductive postfix_expr : Type :=
   |post_Cst : nat -> postfix_expr
   |post_Mult : postfix_expr
   |post_Plus : postfix_expr.
-
-
+  
 Inductive liste : Type := 
   | lvide : liste
   | ajt : postfix_expr -> liste -> liste.
 
 Notation "pexpr :l: l" := (ajt pexpr l) (right associativity, at level 60).
+
 
 
 
@@ -100,6 +100,15 @@ Notation "l1 @ l2" := (append l1 l2) (right associativity, at level 60).
 
 Compute postfix_expr1 @ postfix_expr2.
 
+Theorem append_l_lvide_equals_l: forall(e:liste),append e lvide = e.
+Proof.
+  intro e.
+  induction e as [| e' e'' IHe'].
+  +simpl. reflexivity.
+  +simpl. rewrite IHe'. reflexivity.
+Qed.
+
+
 (*5.2*)
 
 Lemma associativity : lvide @ (postfix_expr1 @ postfix_expr2) = (lvide @ postfix_expr1) @ postfix_expr2.
@@ -110,12 +119,12 @@ Proof.
 Qed.
 
 (*Question 6*)
-
+  
 Fixpoint translate (e : expr) : liste :=
   match e with
-  |Cst n => (post_Cst n) :l: lvide
   |Mult e1 e2 => (translate e1) @ (translate e2) @ post_Mult :l: lvide
   |Plus e1 e2 => (translate e1) @ (translate e2) @ post_Plus :l: lvide
+  |Cst n => (post_Cst n) :l: lvide
   end.
 
 Example test : translate expr1 = postfix_expr1.
@@ -132,8 +141,6 @@ Inductive well_formed : liste -> Prop :=
 | w_plus : forall l1 l2, well_formed l1 -> well_formed l2 -> well_formed ( l1 @ l2 @ post_Mult :l: lvide)
 | w_fois : forall l1 l2, well_formed l1 -> well_formed l2 -> well_formed ( l1 @ l2 @ post_Plus :l: lvide). 
 
-Compute well_formed postfix_expr1.
-
 (*7.2*)
 
 Lemma wf_ok : forall e : expr, well_formed (translate e).
@@ -141,8 +148,8 @@ Proof.
   intros e.
   induction e.
   - simpl. constructor.
-  - simpl. constructor; assumption.
-  - simpl. constructor; assumption.
+  - simpl. constructor. assumption. assumption.
+  - simpl. constructor. assumption. assumption.
 Qed.
 
 (*Question 8*)
@@ -207,13 +214,75 @@ Compute sommet (eval_postfixe (postfix_expr2 @ postfix_expr1 @ post_Mult :l: lvi
 
 (*10.1*)
 
-(*Question 10*)
+Lemma append_eval : forall ( e f: liste), forall ( p: pile),
+eval_postfixe (append e f) p = eval_postfixe f (eval_postfixe e p).
 
-(*10.1*)
-Lemma append_eval : forall (e f : liste) (p : pile),
-  eval_postfixe (append e f) p = eval_postfixe f (eval_postfixe e p).
+Proof.
+Admitted.
+(*
+
+Trace
+
 Proof.
   intros e f p.
+  induction e as [|e_elt e_li IHe'].
+  +simpl. reflexivity.
+  +destruct e_elt as [n| |].
+    -assert(H: forall(n : nat), forall(li : well_formed e_li), eval_postfixe e_li p = p :p: n).
+      *intros n0 wf. destruct wf.
+        ++simpl. destruct n1.
+          --reflexivity.
+
+
+    - assert(H: forall(n : nat), w_cst n -> eval_postfixe e_li p = p :p: n)
+      *intro n. intro wf. destruct wf as [n0| |].
+        ++rewrite (n0 :l: lvide) .
+    -induction f as [|f_elt f_li IHf']. 
+      *simpl. rewrite append_l_lvide_equals_l. reflexivity.
+      *intro IHf'.
+
+
+
+    -simpl.
+     destruct (p :p: n).
+        *destruct l as [m|].
+            ++rewrite append_l_lvide_equals_l.
+    -simpl. 
+    -simpl. induction f as [| f' f'' IHf'].
+      *simpl. rewrite append_l_lvide_equals_l. reflexivity.
+      *destruct f' as [m | |].
+          ++apply IHe'.
+
+
+  intros e f p.
+  induction e.
+  +simpl. reflexivity.
+  +assert (H: eval_postfixe e p = (p :p: p0)).
+  +induction p as [|p' p'' IHp'].
+    -simpl; reflexivity.
+    -rewrite <- IHe'.
+     simpl.
+  induction e as [|e' e'' IHe'].
+  +simpl. reflexivity.
+  +assert (H: eval_postfixe (e' :l: e'') p = p).
+    -rewrite <- IHe'.
+  +simpl. reflexivity.
+  +simpl. reflexivity.
+  induction e.
+  +simpl. reflexivity.
+  +simpl. 
+  +simpl.
+
+
+    -reflexivity.
+  assert (H: eval_postfixe lvide p = p).
+  +simpl. reflexivity.
+  +rewrite -> H. simpl. reflexivity.
+  +assert (H0: eval_postfixe (e @ f) p = eval_postfixe ((p0 :l: e) @ f) p).
+    -rewrite -> IHe. rewrite <- IHe. destruct e.
+      *rewrite -> IHe. rewrite <- IHe. simpl.
+
+ intros e f p.
   induction e as [| exp l IHl].
   - (* Cas de base : e = lvide *)
     simpl.
@@ -224,12 +293,19 @@ Proof.
     destruct exp as [n | | ].
     +
       simpl. (*rewrite Ihl.*)
-Admitted.
+*)
 
-(* 10.2 *)
+(*10.2*)
+
 Lemma depiler_eval : forall (f: liste),
     well_formed f -> forall (p : pile), p = depiler(eval_postfixe f p).
 Proof.
+Admitted.
+
+(*
+Trace
+(* 10.2 *)
+
   intros f p.
   induction p as [| exp | IHl].
   -
@@ -245,4 +321,6 @@ Proof.
       destruct n as [n | |].
       simpl. reflexivity.
       simpl.
+*)
+
 
