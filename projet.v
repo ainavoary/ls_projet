@@ -207,8 +207,42 @@ Compute sommet (eval_postfixe (postfix_expr2 @ postfix_expr1 @ post_Mult :l: lvi
 
 (*10.1*)
 
-Lemma append_eval : forall ( e f: liste), forall ( p: pile),
-eval_postfixe (append e f) p = eval_postfixe f (eval_postfixe e p).
+(*Question 10*)
 
+(*10.1*)
+Lemma append_eval : forall (e f : liste) (p : pile),
+  eval_postfixe (append e f) p = eval_postfixe f (eval_postfixe e p).
+Proof.
+  intros e f p.
+  induction e as [| exp l IHl].
+  - (* Cas de base : e = lvide *)
+    simpl.
+    (* Utilise la réflexivité de l'égalité pour conclure *)
+    reflexivity.
+  - (* Cas de l'induction : e = ajt exp l *)
+    simpl.
+    destruct exp as [n | | ].
+    +
+      simpl. (*rewrite Ihl.*)
+Admitted.
 
+(* 10.2 *)
+Lemma depiler_eval : forall (f: liste),
+    well_formed f -> forall (p : pile), p = depiler(eval_postfixe f p).
+Proof.
+  intros f p.
+  induction p as [| exp | IHl].
+  -
+    intro p. simpl.
+    destruct p as [n0 | ].
+    simpl.
+    +
+      destruct n as [ | |].
+      simpl. reflexivity.
+      simpl. reflexivity.
+      simpl. reflexivity.
+    +
+      destruct n as [n | |].
+      simpl. reflexivity.
+      simpl.
 
